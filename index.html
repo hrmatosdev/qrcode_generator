@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de QR Code</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 520px;
+            width: 100%;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+        }
+        h1 {
+            color: #fff;
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+        .subtitle {
+            color: rgba(255,255,255,0.5);
+            text-align: center;
+            margin-bottom: 32px;
+            font-size: 0.9rem;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            color: rgba(255,255,255,0.7);
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+        select, input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        select option { background: #302b63; color: #fff; }
+        select:focus, input:focus { border-color: #6c63ff; }
+        input::placeholder { color: rgba(255,255,255,0.3); }
+        .hidden { display: none; }
+        .social-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .social-btn {
+            padding: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            background: rgba(255,255,255,0.03);
+            color: rgba(255,255,255,0.6);
+            cursor: pointer;
+            text-align: center;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .social-btn:hover { border-color: #6c63ff; color: #fff; }
+        .social-btn.active {
+            background: #6c63ff;
+            border-color: #6c63ff;
+            color: #fff;
+        }
+        .btn-generate {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #6c63ff, #e040fb);
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 8px;
+        }
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(108,99,255,0.4);
+        }
+        .qrcode-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 28px;
+            padding-top: 28px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+        #qrcode {
+            padding: 16px;
+            background: #fff;
+            border-radius: 16px;
+            display: inline-block;
+        }
+        #qrcode img { display: block; }
+        .btn-download {
+            margin-top: 16px;
+            padding: 10px 24px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            background: transparent;
+            color: #fff;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-download:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: #6c63ff;
+        }
+        .wifi-fields { display: flex; flex-direction: column; gap: 12px; }
+        .wifi-row { display: flex; gap: 8px; align-items: center; }
+        .wifi-row label { margin-bottom: 0; white-space: nowrap; min-width: 70px; }
+        .wifi-row input { flex: 1; }
+        @media (max-width: 480px) {
+            .container { padding: 24px; }
+            .social-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>QR Code Generator</h1>
+        <p class="subtitle">Gere QR Codes para qualquer necessidade</p>
+
+        <div class="form-group">
+            <label for="type">Tipo de conteúdo</label>
+            <select id="type">
+                <option value="url">Site / URL</option>
+                <option value="social">Rede Social</option>
+                <option value="wifi">Wi-Fi</option>
+            </select>
+        </div>
+
+        <div id="url-field" class="form-group">
+            <label for="url">URL</label>
+            <input type="url" id="url" placeholder="https://exemplo.com" value="https://">
+        </div>
+
+        <div id="social-field" class="form-group hidden">
+            <label>Escolha a rede social</label>
+            <div class="social-grid" id="social-grid">
+                <div class="social-btn" data-social="instagram">Instagram</div>
+                <div class="social-btn" data-social="twitter">X / Twitter</div>
+                <div class="social-btn" data-social="facebook">Facebook</div>
+                <div class="social-btn" data-social="linkedin">LinkedIn</div>
+                <div class="social-btn" data-social="whatsapp">WhatsApp</div>
+                <div class="social-btn" data-social="tiktok">TikTok</div>
+                <div class="social-btn" data-social="youtube">YouTube</div>
+                <div class="social-btn" data-social="telegram">Telegram</div>
+            </div>
+            <input type="text" id="social-user" placeholder="Nome de usuário / perfil" style="margin-top:10px">
+        </div>
+
+        <div id="wifi-field" class="form-group hidden">
+            <label>Configurações da Rede</label>
+            <div class="wifi-fields">
+                <div class="wifi-row">
+                    <label>SSID</label>
+                    <input type="text" id="wifi-ssid" placeholder="Nome da rede Wi-Fi">
+                </div>
+                <div class="wifi-row">
+                    <label>Senha</label>
+                    <input type="text" id="wifi-pass" placeholder="Senha da rede">
+                </div>
+                <div class="wifi-row">
+                    <label>Segurança</label>
+                    <select id="wifi-enc">
+                        <option value="WPA">WPA / WPA2</option>
+                        <option value="WEP">WEP</option>
+                        <option value="nopass">Aberta (sem senha)</option>
+                    </select>
+                </div>
+                <div class="wifi-row">
+                    <label>Oculto</label>
+                    <select id="wifi-hidden">
+                        <option value="false">Não</option>
+                        <option value="true">Sim</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-generate" id="generateBtn">Gerar QR Code</button>
+
+        <div class="qrcode-wrapper" id="result-area" style="display:none">
+            <div id="qrcode"></div>
+            <button class="btn-download" id="downloadBtn">Baixar PNG</button>
+        </div>
+    </div>
+
+    <script>
+        const typeSelect = document.getElementById('type');
+        const urlField = document.getElementById('url-field');
+        const socialField = document.getElementById('social-field');
+        const wifiField = document.getElementById('wifi-field');
+        const generateBtn = document.getElementById('generateBtn');
+        const resultArea = document.getElementById('result-area');
+        const qrContainer = document.getElementById('qrcode');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const socialBtns = document.querySelectorAll('.social-btn');
+        const socialUser = document.getElementById('social-user');
+
+        let selectedSocial = 'instagram';
+        let qrCodeInstance = null;
+
+        typeSelect.addEventListener('change', () => {
+            const val = typeSelect.value;
+            urlField.classList.toggle('hidden', val !== 'url');
+            socialField.classList.toggle('hidden', val !== 'social');
+            wifiField.classList.toggle('hidden', val !== 'wifi');
+            resultArea.style.display = 'none';
+        });
+
+        socialBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                socialBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedSocial = btn.dataset.social;
+            });
+        });
+        socialBtns[0].classList.add('active');
+
+        function buildContent() {
+            const type = typeSelect.value;
+            if (type === 'url') {
+                return document.getElementById('url').value.trim();
+            } else if (type === 'social') {
+                const user = socialUser.value.trim();
+                if (!user) return '';
+                const urls = {
+                    instagram: 'https://instagram.com/',
+                    twitter: 'https://x.com/',
+                    facebook: 'https://facebook.com/',
+                    linkedin: 'https://linkedin.com/in/',
+                    whatsapp: 'https://wa.me/',
+                    tiktok: 'https://tiktok.com/@',
+                    youtube: 'https://youtube.com/@',
+                    telegram: 'https://t.me/'
+                };
+                return urls[selectedSocial] + user;
+            } else if (type === 'wifi') {
+                const ssid = document.getElementById('wifi-ssid').value.trim();
+                const pass = document.getElementById('wifi-pass').value.trim();
+                const enc = document.getElementById('wifi-enc').value;
+                const hidden = document.getElementById('wifi-hidden').value;
+                if (!ssid) return '';
+                return `WIFI:T:${enc};S:${ssid};P:${pass};H:${hidden};;`;
+            }
+            return '';
+        }
+
+        function generateQR() {
+            const content = buildContent();
+            if (!content) {
+                alert('Preencha os campos necessários.');
+                return;
+            }
+
+            qrContainer.innerHTML = '';
+            resultArea.style.display = 'flex';
+
+            qrCodeInstance = new QRCode(qrContainer, {
+                text: content,
+                width: 220,
+                height: 220,
+                colorDark: '#000000',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        }
+
+        generateBtn.addEventListener('click', generateQR);
+
+        downloadBtn.addEventListener('click', () => {
+            const img = qrContainer.querySelector('img');
+            if (!img) return;
+            const link = document.createElement('a');
+            link.download = 'qrcode.png';
+            link.href = img.src;
+            link.click();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') generateQR();
+        });
+    </script>
+</body>
+</html>
